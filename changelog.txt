@@ -1,0 +1,14 @@
+Version 1.0 - November 17, 2010
+ - Initial version.
+
+Version 1.1 - January 19, 2011
+ - Bug fix: if widget was disabled by default, the buttons were not also disabled by default.
+ - Bug fix: buttons would not loose focus tabbing away from the widget.
+ - Bug fix: changing the input value did not raise the change event of the input when using the buttons or arrow keys.
+ - Updated: widget to use ui-widget-content so that a border doesn't have to be explicitly set in the ui-numeric CSS class.
+ - Updated: the ui-numeric-buttons class to use the EM unit for the button width and height.
+ - Added: version property.
+ - Added: settings to specify the up/down button icons and tooltip text.
+ - Added: setting to specify tooltip text for when hovering over the input.
+ - Added: widget now destroys itself on page unload to help prevent memory leaks.
+ - Added: several utility methods that extend the JavaScript Number object: roundRight(), pad(), padRight(), padDecimals(), getOrdinal(), format(), and formatCurrency().
