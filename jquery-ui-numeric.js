@@ -1,9 +1,12 @@
 /*
-* jQuery UI Numeric Up/Down v1.1
+* jQuery UI Numeric Up/Down v1.2
 *
 * Copyright 2011, Tony Kramer
 * Dual licensed under the MIT or GPL Version 2 licenses.
-* http://jquery.org/license
+* https://github.com/flamewave/jquery-ui-numeric/raw/master/GPL-LICENSE.txt
+* https://github.com/flamewave/jquery-ui-numeric/raw/master/MIT-LICENSE.txt
+*
+* https://github.com/flamewave/jquery-ui-numeric
 *
 * Dependencies:
 * - jQuery (1.4.2)
@@ -20,7 +23,7 @@
     // .ui-numeric-disabled {}
 
     $.widget('ui.numeric', {
-        version: '1.1',
+        version: '1.2',
         options: {
             disabled: false,     // Indicates if the widgit is disabled.
             keyboard: true,      // Indicates if keyboard keys should be allowed to increment/decrement the input value.
@@ -41,6 +44,13 @@
             smallIncrement: 1,  // The small increment that is used if the "ctrl" key is pressed.
             increment: 5,       // The default increment that is used if no key modifiers are pressed.
             largeIncrement: 10, // The large increment that is used if the "shift" key is pressed, or when "page up" or "page down" are pressed.
+            calc: null,         // Function that is called to calculate what the next value is when incrementing/decrementing the value of the input.
+                                // Providing this function will override the default functionality which is to add/subtract the increment amount.
+                                // Function definition: Number function(value, type, direction)
+                                //     where value is the current input value.
+                                //     where type is a number: 1 = normal increment, 2 = small increment, and 3 = large increment.
+                                //     where direction is a number: 1 = up, 2 = down.
+                                //     returns the new value of the input.
 
             format: {
                 format: '0',       // The string to format the number with. See Number.format() in the jquery.onsharp.number plugin for details.
@@ -57,14 +67,14 @@
 
         _create: function()
         {
-            var t = this, o = t.options, w = t.widget();
-            if (w.attr('type').toLowerCase() !== 'text')
-                throw 'numeric widget can only be applied to text inputs.';
+            var t = this, o = t.options, w = t.widget(), type = w.attr('type').toLowerCase();
+            if (type !== 'text' && type !== 'number')
+                throw 'numeric widget can only be applied to text and number inputs.';
 
             t._checkFormat();
 
             t._name = w.attr('id') || w.attr('name');
-            t._value = t._getInputValue(w.attr('value'));
+            t._value = t._getInputValue(w.attr('value'), true);
 
             if (o.minValue !== false && t._value < o.minValue)
                 t._value = o.minValue;
@@ -100,8 +110,7 @@
             w.unbind({
                 keydown: function(event) { return t._onKeyDown(event) },
                 keyup: function(event) { return t._onKeyUp(event) },
-                change: function(event) { return t._onChange(event) },
-                blur: function() { btnUp.blur(); btnDown.blur(); }
+                change: function(event) { return t._onChange(event) }
             });
 
             if (t.options.showCurrency)
@@ -146,15 +155,7 @@
                 })
                 .button({ text: false, label: 'D', icons: { primary: t.options.downButtonIcon} });
 
-            t.widget()
-                .blur(function() { btnUp.blur(); btnDown.blur(); })
-                .after(
-                    $('<div/>')
-                        .attr('id', t._name + '_buttons')
-                        .addClass('ui-numeric-buttons')
-                        .append(btnUp)
-                        .append(btnDown)
-                );
+            t._addButtons(btnUp, btnDown);
 
             function keydown(event, neg)
             {
@@ -174,13 +175,25 @@
                 // Fixes an issue where if the other button is clicked, then both buttons are shown to have focus.
                 (neg ? btnUp : btnDown).blur();
                 var inc = t._getIncrement(event.ctrlKey, event.shiftKey);
-                t._adjustValueRecursive(neg ? -inc : inc);
+                t._adjustValueRecursive(neg ? -inc.value : inc.value, inc.type);
             }
 
             function up()
             {
                 clearTimeout(t._timer);
             }
+        },
+
+        _addButtons: function(btnUp, btnDown)
+        {
+            this.widget()
+                .after(
+                    $('<div/>')
+                        .attr('id', this._name + '_buttons')
+                        .addClass('ui-numeric-buttons')
+                        .append(btnUp)
+                        .append(btnDown)
+                );
         },
 
         _setOption: function(key, value)
@@ -296,14 +309,14 @@
                 o.format = $.extend({ format: '0', decimalChar: '.', thousandsChar: ',' }, o.format);
         },
 
-        _getInputValue: function(val)
+        _getInputValue: function(val, parse)
         {
             // Remove the thousands separator and normalize the decimal character to a '.' if it isn't already so that JavaScript is able to
             // properly parse the value.
             val = val.replace(new RegExp(regExEscape(this.options.format.thousandsChar), 'g'), '');
             if (this.options.format.decimalChar !== '.')
                 val = val.replace(new RegExp(regExEscape(this.options.format.decimalChar), 'g'), '.');
-            return _numVal(val);
+            return parse ? _numVal(val) : val;
         },
 
         _setInputValue: function(val)
@@ -339,27 +352,28 @@
         _getIncrement: function(ctrl, shift)
         {
             if (ctrl)
-                return this.options.smallIncrement;
+                return { value: this.options.smallIncrement, type: 2 };
 
             else if (shift)
-                return this.options.largeIncrement;
+                return { value: this.options.largeIncrement, type: 3 };
 
-            return this.options.increment;
+            return { value: this.options.increment, type: 1 };
         },
 
-        _adjustValue: function(amount)
+        _adjustValue: function(amount, type)
         {
-            if (this.options.disabled)
+            var t = this;
+            if (t.options.disabled)
                 return;
 
-            this._setValue(this._value + amount);
-            this.select();
+            t._setValue($.isFunction(t.options.calc) ? t.options.calc(t._value, type, amount < 0 ? 2 : 1) : t._value + amount);
+            t.select();
         },
 
-        _adjustValueRecursive: function(amount)
+        _adjustValueRecursive: function(amount, type)
         {
             $.ui.numeric._current = this;
-            $.ui.numeric._timerCallback(amount, true);
+            $.ui.numeric._timerCallback(amount, type, true);
         },
 
         _onKeyDown: function(event)
@@ -378,23 +392,22 @@
                     return;
 
                 case 38: // Up Arrow
-                    if (o.keyboard)
-                        t._adjustValue(t._getIncrement(event.ctrlKey, event.shiftKey));
-                    return;
-
                 case 40: // Down Arrow
                     if (o.keyboard)
-                        t._adjustValue(-t._getIncrement(event.ctrlKey, event.shiftKey));
+                    {
+                        var inc = t._getIncrement(event.ctrlKey, event.shiftKey);
+                        t._adjustValue(event.which == 40 ? -inc.value : inc.value, inc.type);
+                    }
                     return;
 
                 case 33: // Page Up
                     if (o.keyboard)
-                        t._adjustValue(o.largeIncrement);
+                        t._adjustValue(o.largeIncrement, 3);
                     return;
 
                 case 34: // Page Down
                     if (o.keyboard)
-                        t._adjustValue(-o.largeIncrement);
+                        t._adjustValue(-o.largeIncrement, 3);
                     return;
 
                     // The following are keyboard shortcuts that we still want to allow.
@@ -422,13 +435,18 @@
 
         _onKeyUp: function()
         {
-            this._keyDownFlag = false;
+            // Make sure the value gets updated after every keypress if the current value of the input parses to a valid number.
+            var t = this, v = parseFloat(t._getInputValue(t.widget().attr('value'), false));
+            if (!isNaN(v))
+                t._value = v;
+
+            t._keyDownFlag = false;
         },
 
         _onChange: function(event)
         {
             if (!this._adjustmentFlag && !this._keyDownFlag)
-                this._setValue(this._getInputValue(event.target.value));
+                this._setValue(this._getInputValue(event.target.value), true);
         },
 
         // Gets or sets the numeric value as a JavaScript Number object.
@@ -454,11 +472,11 @@
 
     $.ui = $.ui || {};
     $.ui.numeric._current = null;
-    $.ui.numeric._timerCallback = function(amount, first)
+    $.ui.numeric._timerCallback = function(amount, type, first)
     {
         clearTimeout($.ui.numeric._current._timer);
-        $.ui.numeric._current._adjustValue(amount);
-        $.ui.numeric._current._timer = setTimeout('jQuery.ui.numeric._timerCallback(' + amount + ',false)', first ? 1000 : 50);
+        $.ui.numeric._current._adjustValue(amount, type);
+        $.ui.numeric._current._timer = setTimeout('jQuery.ui.numeric._timerCallback(' + amount + ',' + type + ',false)', first ? 1000 : 50);
     }
 
     function isControlKey(keyCode)

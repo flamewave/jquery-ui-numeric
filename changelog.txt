@@ -12,3 +12,10 @@ Version 1.1 - January 19, 2011
  - Added: setting to specify tooltip text for when hovering over the input.
  - Added: widget now destroys itself on page unload to help prevent memory leaks.
  - Added: several utility methods that extend the JavaScript Number object: roundRight(), pad(), padRight(), padDecimals(), getOrdinal(), format(), and formatCurrency().
+
+Version 1.2 - January 28, 2011
+ - Bug fix: Issue #1 - After changing the input value by typing in a new value, the old value would be used when incrementing/decrementing using the arrow keys if the input had not lost focus. See https://github.com/flamewave/jquery-ui-numeric/issues#issue/1 for details.
+ - Added: "calc" setting that allows a custom function to be used to increment/decrement the value.
+ - Added: Moved the functionality for adding the buttons to the widget to their own function so that plugin authors can more easily override the placement of the buttons.
+ - Added: Support for the HTML5 "number" input type.
+ - Cleanup: Removed un-used "blur" event handler that was left over from fixing a previous issue.

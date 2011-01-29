@@ -1,5 +1,5 @@
 /*
-* jQuery UI Numeric Up/Down v1.1
+* jQuery UI Numeric Up/Down v1.2
 *
 * Copyright 2011, Tony Kramer
 * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -9,9 +9,9 @@
 * https://github.com/flamewave/jquery-ui-numeric
 */
 
-This widget allows you to turn any text input box (input[type=text]) into a numeric "up/down" picker. Users can use
-keyboard arrow keys or page up/down keys to adjust the number, or they can click the up/down buttons that are added
-to the right of the input.
+This widget allows you to turn any text or number input box (input[type=text],input[type=number]) into a numeric
+"up/down" picker (otherwise known as a "spinner"). Users can use keyboard arrow keys or page up/down keys to adjust
+the number, or they can click the up/down buttons that are added to the right of the input.
 
 You are also able to format the way the number is displayed in the input so that a specific numeric format is enforced.
 This is done through the use of the $.numberFormat() function included with this widget.
@@ -83,6 +83,29 @@ increment: 5
 
 largeIncrement: 10
     The large increment that is used if the "shift" key is pressed, or when "page up" or "page down" are pressed.
+
+calc: null
+    Function that is called to calculate what the next value is when incrementing/decrementing the value of the input.
+    Providing this function will override the default functionality which is to add/subtract the increment amount.
+    Function definition: Number function(value, type, direction)
+        where value is the current input value.
+        where type is a number: 1 = normal increment, 2 = small increment, and 3 = large increment.
+        where direction is a number: 1 = up, 2 = down.
+        returns the new value of the input.
+    For example, to have the widget multiply it's value by 2 on a small increment, mulitply by 4 on a normal increment, and
+    mulitply by 8 on a large increment, you would do something like this:
+        $('#inputid').numeric({
+            emptyValue: false,
+            minValue: 0,
+            calc: function(val, type, dir)
+            {
+                if (val < 1)
+                    return dir == 1 ? 1 : 0;
+
+                var mult = type == 2 ? 2 : (type == 3 ? 8 : 4);
+                return dir == 2 ? (val / mult) : (val * mult);
+            }
+        });
 
 format: { format: '0', decimalChar: '.', thousandsChar: ',' }
     The format information to use to format the number in the input. The "format" property is the format string to use (see
