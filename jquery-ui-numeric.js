@@ -503,17 +503,6 @@
         return val;
     }
 
-    function _valNumParam(val)
-    {
-        if (typeof val !== 'number')
-            val = Number(val);
-
-        if (isNaN(val))
-            return 0;
-
-        return val;
-    }
-
     function replicate(str, count)
     {
         var v_retval = '';
@@ -673,7 +662,7 @@
     // Rounds the decimal part of the number to the specified number of decimals.
     Number.prototype.roundRight = function(numberOfDecimals)
     {
-        numberOfDecimals = _valNumParam(numberOfDecimals);
+        numberOfDecimals = _numVal(numberOfDecimals);
 
         var v_pow = Math.pow(10, numberOfDecimals);
         return Math.round(this * v_pow) / v_pow;
@@ -683,7 +672,7 @@
     // number of digits specified, then the string value of the number is returned.
     Number.prototype.pad = function(numberOfDigits)
     {
-        numberOfDigits = _valNumParam(numberOfDigits);
+        numberOfDigits = _numVal(numberOfDigits);
 
         var v_string = String(this.valueOf()), v_s_len = v_string.length;
         if (v_s_len < numberOfDigits)
@@ -698,7 +687,7 @@
     // number of digits specified, then the string value of the number is returned.
     Number.prototype.padRight = function(numberOfDigits)
     {
-        numberOfDigits = _valNumParam(numberOfDigits);
+        numberOfDigits = _numVal(numberOfDigits);
 
         var v_string = String(this.valueOf()), v_s_len = v_string.length - (this % 1 > 0 ? 1 : 0);
         if (v_s_len < numberOfDigits)
@@ -713,7 +702,7 @@
     // string length of the decimal digits is longer than the number of digits specified, then the string value of the number is returned.
     Number.prototype.padDecimals = function(numberOfDecimals)
     {
-        numberOfDecimals = _valNumParam(numberOfDecimals);
+        numberOfDecimals = _numVal(numberOfDecimals);
 
         var v_parts = String(this.valueOf()).split('.');
 
