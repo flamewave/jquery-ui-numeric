@@ -1,5 +1,5 @@
 /*
-* jQuery UI Numeric Up/Down v1.2
+* jQuery UI Numeric Up/Down v1.3
 *
 * Copyright 2011, Tony Kramer
 * Dual licensed under the MIT or GPL Version 2 licenses.

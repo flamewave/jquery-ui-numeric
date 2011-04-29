@@ -1,5 +1,5 @@
 /*
-* jQuery UI Numeric Up/Down v1.2
+* jQuery UI Numeric Up/Down v1.3
 *
 * Copyright 2011, Tony Kramer
 * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -23,7 +23,7 @@
     // .ui-numeric-disabled {}
 
     $.widget('ui.numeric', {
-        version: '1.2',
+        version: '1.3',
         options: {
             disabled: false,     // Indicates if the widgit is disabled.
             keyboard: true,      // Indicates if keyboard keys should be allowed to increment/decrement the input value.
@@ -82,7 +82,8 @@
             if (o.maxValue !== false && t._value > o.maxValue)
                 t._value = o.maxValue;
 
-            t._setInputValue(t._value);
+            // Fix for issue #3 - Change event firing when initializing - credit to glittle for the fix.
+            t.widget().attr('value', t._format(t._value));
             w.attr('title', o.title).wrap($('<div class="ui-widget ui-widget-content ui-corner-all ui-numeric" />'));
 
             if (o.showCurrency)
