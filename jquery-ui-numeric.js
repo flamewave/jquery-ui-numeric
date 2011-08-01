@@ -1,11 +1,14 @@
-/*
-* jQuery UI Numeric Up/Down v1.3
+/*!
+* jQuery UI Numeric Up/Down v1.4
 *
 * Copyright 2011, Tony Kramer
 * Dual licensed under the MIT or GPL Version 2 licenses.
 * https://github.com/flamewave/jquery-ui-numeric/raw/master/GPL-LICENSE.txt
 * https://github.com/flamewave/jquery-ui-numeric/raw/master/MIT-LICENSE.txt
-*
+*/
+
+/*
+* For documentation and for the latest version, see:
 * https://github.com/flamewave/jquery-ui-numeric
 *
 * Dependencies:
@@ -16,47 +19,36 @@
 {
     // Default CSS Classes:
     // .ui-numeric { display: inline-block; }
-    // .ui-numeric input[type=text] { border: none; text-align: right; margin: 0px; vertical-align: top; }
+    // .ui-numeric input[type=text], .ui-numeric input[type=number] { border: none; text-align: right; margin: 0px; vertical-align: top; }
     // .ui-numeric-currency { display: inline-block; padding: 0px 2px; vertical-align: top; }
     // .ui-numeric-buttons { display: inline-block; padding-left: 2px; }
     // .ui-numeric-buttons .ui-button { margin: 0px; width: 1.55em; height: 1.55em; }
     // .ui-numeric-disabled {}
 
     $.widget('ui.numeric', {
-        version: '1.3',
+        version: '1.4',
         options: {
-            disabled: false,     // Indicates if the widgit is disabled.
-            keyboard: true,      // Indicates if keyboard keys should be allowed to increment/decrement the input value.
-            showCurrency: false, // A value indicating if the currency symbol should be displayed to the left of the input.
-            currencySymbol: '$', // The currency symbol to use.
-            title: 'Type a new value or use the buttons or keyboard arrow keys to change the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.', // Input tooltip.
+            disabled: false,
+            keyboard: true,
+            showCurrency: false,
+            currencySymbol: null,
+            title: null,
 
-            buttons: true, // Indicates if the up/down buttons should be displayed to the right of the input.
-            upButtonIcon: 'ui-icon-triangle-1-n', // Icon of the up button.
-            upButtonTitle: 'Increment the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.', // Tooltip text of the up button.
-            downButtonIcon: 'ui-icon-triangle-1-s', // Icon of the down button.
-            downButtonTitle: 'Decrement the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.', // Tooltip text of the down button.
+            buttons: true,
+            upButtonIcon: 'ui-icon-triangle-1-n',
+            upButtonTitle: null,
+            downButtonIcon: 'ui-icon-triangle-1-s',
+            downButtonTitle: null,
 
-            emptyValue: 0,   // If the value equals the value specified by this option, then the input is made "empty" so that no value is visible. To disable this functionality, set this option to false.
-            minValue: false, // The minimum value allowed. To disable, set this option to false.
-            maxValue: false, // The maximum value allowed. To disable, set this option to false.
+            emptyValue: 0,
+            minValue: false,
+            maxValue: false,
 
-            smallIncrement: 1,  // The small increment that is used if the "ctrl" key is pressed.
-            increment: 5,       // The default increment that is used if no key modifiers are pressed.
-            largeIncrement: 10, // The large increment that is used if the "shift" key is pressed, or when "page up" or "page down" are pressed.
-            calc: null,         // Function that is called to calculate what the next value is when incrementing/decrementing the value of the input.
-                                // Providing this function will override the default functionality which is to add/subtract the increment amount.
-                                // Function definition: Number function(value, type, direction)
-                                //     where value is the current input value.
-                                //     where type is a number: 1 = normal increment, 2 = small increment, and 3 = large increment.
-                                //     where direction is a number: 1 = up, 2 = down.
-                                //     returns the new value of the input.
-
-            format: {
-                format: '0',       // The string to format the number with. See Number.format() in the jquery.onsharp.number plugin for details.
-                decimalChar: '.',  // The decimal character, if the format string specifies that decimal places should be included.
-                thousandsChar: ',' // The thousands separator character, if the format string specifies to use one.
-            }
+            smallIncrement: 1,
+            increment: 5,
+            largeIncrement: 10,
+            calc: null,
+            format: null
         },
 
         _adjustmentFlag: false,
@@ -67,96 +59,96 @@
 
         _create: function()
         {
-            var t = this, o = t.options, w = t.widget(), type = w.attr('type').toLowerCase();
+            var type = this.element.attr('type').toLowerCase();
             if (type !== 'text' && type !== 'number')
                 throw 'numeric widget can only be applied to text and number inputs.';
 
-            t._checkFormat();
+            this._checkFormat();
 
-            t._name = w.attr('id') || w.attr('name');
-            t._value = t._getInputValue(w.attr('value'), true);
+            this._name = this.element.attr('id') || this.element.attr('name');
+            this._value = this._getInputValue(this.element.attr('value'), true);
 
-            if (o.minValue !== false && t._value < o.minValue)
-                t._value = o.minValue;
+            if (this.options.minValue !== false && this._value < this.options.minValue)
+                this._value = this.options.minValue;
 
-            if (o.maxValue !== false && t._value > o.maxValue)
-                t._value = o.maxValue;
+            if (this.options.maxValue !== false && this._value > this.options.maxValue)
+                this._value = this.options.maxValue;
 
             // Fix for issue #3 - Change event firing when initializing - credit to glittle for the fix.
-            t.widget().attr('value', t._format(t._value));
-            w.attr('title', o.title).wrap($('<div class="ui-widget ui-widget-content ui-corner-all ui-numeric" />'));
+            this.element.attr('value', this._format(this._value));
+            this.element.attr('title', this.options.title || $.ui.numeric.globalization.defaultTooltip).wrap($('<div class="ui-widget ui-widget-content ui-corner-all ui-numeric" />'));
 
-            if (o.showCurrency)
-                t._createCurrency();
+            if (this.options.showCurrency)
+                this._createCurrency();
 
-            if (o.buttons)
-                t._createButtons();
+            if (this.options.buttons)
+                this._createButtons();
 
-            w.bind({
-                keydown: function(event) { return t._onKeyDown(event) },
-                keyup: function(event) { return t._onKeyUp(event) },
-                change: function(event) { return t._onChange(event) }
+            var self = this;
+            this.element.bind({
+                keydown: function(event) { return self._onKeyDown(event) },
+                keyup: function(event) { return self._onKeyUp(event) },
+                change: function(event) { return self._onChange(event) }
             });
 
-            if (o.disabled || w.attr('disabled'))
-                t._setOption('disabled', true);
+            if (this.options.disabled || this.element.attr('disabled'))
+                this.options._setOption('disabled', true);
 
             // Prevent memory leaks.
-            $(window).bind('unload', function() { t.destroy(); });
+            $(window).bind('unload', function() { self.destroy(); });
         },
 
         destroy: function()
         {
-            var t = this, w = t.widget();
-            w.unbind({
-                keydown: function(event) { return t._onKeyDown(event) },
-                keyup: function(event) { return t._onKeyUp(event) },
-                change: function(event) { return t._onChange(event) }
+            var self = this;
+            this.element.unbind({
+                keydown: function(event) { return self._onKeyDown(event) },
+                keyup: function(event) { return self._onKeyUp(event) },
+                change: function(event) { return self._onChange(event) }
             });
 
-            if (t.options.showCurrency)
-                $('#' + t._name + '_currency').remove();
+            if (this.options.showCurrency)
+                $('#' + this._name + '_currency').remove();
 
-            if (t.options.buttons)
-                $('#' + t._name + '_buttons').remove();
+            if (this.options.buttons)
+                $('#' + this._name + '_buttons').remove();
 
-            w.unwrap();
-            $.Widget.prototype.destroy.apply(t);
+            this.element.unwrap();
+            $.Widget.prototype.destroy.call(this);
 
             // Ensure that once the widget is destoryed, the page doesn't try to destroy it on unload.
-            $(window).unbind('unload', function() { t.destroy(); });
+            $(window).unbind('unload', function() { self.destroy(); });
         },
 
         _createCurrency: function()
         {
-            this.widget().before($('<div/>').attr('id', this._name + '_currency').addClass('ui-numeric-currency').html(this.options.currencySymbol));
+            this.element.before($('<div/>').attr('id', this._name + '_currency').addClass('ui-numeric-currency').html(this.options.currencySymbol || Number.globalization.defaultCurrencyFormat.symbol));
         },
 
         _createButtons: function()
         {
-            var t = this;
-
             var btnUp = $('<button type="button"></button>')
-                .attr('title', t.options.upButtonTitle)
+                .attr('title', this.options.upButtonTitle || $.ui.numeric.globalization.defaultUpTooltip)
                 .bind({
                     keydown: function(event) { keydown(event, false); },
                     keyup: function() { up(); },
                     mousedown: function(event) { down(event, false); },
                     mouseup: function() { up(); }
                 })
-                .button({ text: false, label: 'U', icons: { primary: t.options.upButtonIcon} });
+                .button({ text: false, label: 'U', icons: { primary: this.options.upButtonIcon} });
 
             var btnDown = $('<button type="button"></button>')
-                .attr('title', t.options.downButtonTitle)
+                .attr('title', this.options.downButtonTitle || $.ui.numeric.globalization.defaultDownTooltip)
                 .bind({
                     keydown: function(event) { keydown(event, true); },
                     keyup: function() { up(); },
                     mousedown: function(event) { down(event, true); },
                     mouseup: function() { up(); }
                 })
-                .button({ text: false, label: 'D', icons: { primary: t.options.downButtonIcon} });
+                .button({ text: false, label: 'D', icons: { primary: this.options.downButtonIcon} });
 
-            t._addButtons(btnUp, btnDown);
+            this._addButtons(btnUp, btnDown);
+            var self = this;
 
             function keydown(event, neg)
             {
@@ -175,139 +167,132 @@
 
                 // Fixes an issue where if the other button is clicked, then both buttons are shown to have focus.
                 (neg ? btnUp : btnDown).blur();
-                var inc = t._getIncrement(event.ctrlKey, event.shiftKey);
-                t._adjustValueRecursive(neg ? -inc.value : inc.value, inc.type);
+                var inc = self._getIncrement(event.ctrlKey, event.shiftKey);
+                self._adjustValueRecursive(neg ? -inc.value : inc.value, inc.type);
             }
 
             function up()
             {
-                clearTimeout(t._timer);
+                clearTimeout(self._timer);
             }
         },
 
         _addButtons: function(btnUp, btnDown)
         {
-            this.widget()
-                .after(
-                    $('<div/>')
-                        .attr('id', this._name + '_buttons')
-                        .addClass('ui-numeric-buttons')
-                        .append(btnUp)
-                        .append(btnDown)
-                );
+            this.element.after(
+                $('<div/>')
+                    .attr('id', this._name + '_buttons')
+                    .addClass('ui-numeric-buttons')
+                    .append(btnUp)
+                    .append(btnDown)
+            );
         },
 
         _setOption: function(key, value)
         {
-            var t = this, o = t.options;
             switch (key)
             {
                 case 'disabled':
-                    var w = t.widget();
-                    w.parent()[value ? 'addClass' : 'removeClass']('ui-numeric-disabled ui-state-disabled').attr('aria-disabled', value);
-                    t._adjustmentFlag = true;
+                    this.element.parent()[value ? 'addClass' : 'removeClass']('ui-numeric-disabled ui-state-disabled').attr('aria-disabled', value);
+                    this._adjustmentFlag = true;
                     if (value)
-                        w.attr({ disabled: 'disabled', value: '' });
+                        this.element.attr({ disabled: 'disabled', value: '' });
                     else
-                        w.removeAttr('disabled').attr('value', t._format(t._value));
-                    t._adjustmentFlag = false;
+                        this.element.removeAttr('disabled').attr('value', this._format(this._value));
+                    this._adjustmentFlag = false;
 
-                    if (o.buttons)
-                        $('#' + t._name + '_buttons button').button(value ? 'disable' : 'enable');
+                    if (this.options.buttons)
+                        $('#' + this._name + '_buttons button').button(value ? 'disable' : 'enable');
                     break;
 
                 case 'emptyValue':
-                    o.emptyValue = value;
-                    t._setValue(t._value);
+                    this.options.emptyValue = value;
+                    this._setValue(this._value);
                     break;
 
                 case 'minValue':
-                    o.minValue = value === false ? false : _numVal(value);
-                    if (o.minValue !== false && t._value < o.minValue)
-                        t._setValue(o.minValue);
+                    this.options.minValue = value === false ? false : _numVal(value);
+                    if (this.options.minValue !== false && this._value < this.options.minValue)
+                        this._setValue(this.options.minValue);
                     break;
 
                 case 'maxValue':
-                    o.maxValue = value === false ? false : _numVal(value);
-                    if (o.maxValue !== false && t._value > o.maxValue)
-                        t._setValue(o.maxValue);
+                    this.options.maxValue = value === false ? false : _numVal(value);
+                    if (this.options.maxValue !== false && this._value > this.options.maxValue)
+                        this._setValue(this.options.maxValue);
                     break;
 
                 case 'format':
-                    o.format = value;
-                    t._checkFormat();
-                    t._setValue(t._value);
+                    this.options.format = value;
+                    this._checkFormat();
+                    this._setValue(this._value);
                     break;
 
                 case 'title':
-                    o.title = value;
-                    t.widget().attr('title', value);
+                    this.options.title = value || $.ui.numeric.globalization.defaultTooltip;
+                    this.element.attr('title', this.options.title);
                     break;
 
                 case 'showCurrency':
-                    if (value && !o.showCurrency)
-                        t._createCurrency();
+                    if (value && !this.options.showCurrency)
+                        this._createCurrency();
 
-                    else if (!value && o.showCurrency)
-                        $('#' + t._name + '_currency').remove();
+                    else if (!value && this.options.showCurrency)
+                        $('#' + this._name + '_currency').remove();
 
-                    o.showCurrency = value;
+                    this.options.showCurrency = value;
                     break;
 
                 case 'currencySymbol':
-                    o.currencySymbol = value;
-                    if (o.showCurrency)
-                        $('#' + t._name + '_currency').html(value);
+                    this.options.currencySymbol = value || Number.globalization.defaultCurrencyFormat.symbol;
+                    if (this.options.showCurrency)
+                        $('#' + this._name + '_currency').html(this.options.currencySymbol);
                     break;
 
                 case 'buttons':
-                    if (value && !o.buttons)
-                        t._createButtons();
+                    if (value && !this.options.buttons)
+                        this._createButtons();
 
-                    else if (!value && o.buttons)
-                        $('#' + t._name + '_buttons').remove();
+                    else if (!value && this.options.buttons)
+                        $('#' + this._name + '_buttons').remove();
 
-                    o.buttons = value;
+                    this.options.buttons = value;
                     break;
 
                 case 'upButtonIcon':
-                    o.upButtonIcon = value;
-                    if (o.buttons)
-                        $('#' + t._name + '_buttons').find('button:eq(0)').button('option', 'icons', { primary: value });
+                    this.options.upButtonIcon = value;
+                    if (this.options.buttons)
+                        $('#' + this._name + '_buttons').find('button:eq(0)').button('option', 'icons', { primary: value });
                     break;
 
                 case 'upButtonTitle':
-                    o.upButtonTitle = value;
-                    if (o.buttons)
-                        $('#' + t._name + '_buttons').find('button:eq(0)').attr('title', value);
+                    this.options.upButtonTitle = value || $.ui.numeric.globalization.defaultUpTooltip;
+                    if (this.options.buttons)
+                        $('#' + this._name + '_buttons').find('button:eq(0)').attr('title', this.options.upButtonTitle);
                     break;
 
                 case 'downButtonIcon':
-                    o.downButtonIcon = value;
-                    if (o.buttons)
-                        $('#' + t._name + '_buttons').find('button:eq(1)').button('option', 'icons', { primary: value });
+                    this.options.downButtonIcon = value;
+                    if (this.options.buttons)
+                        $('#' + this._name + '_buttons').find('button:eq(1)').button('option', 'icons', { primary: value });
                     break;
 
                 case 'downButtonTitle':
-                    o.downButtonTitle = value;
-                    if (o.buttons)
-                        $('#' + t._name + '_buttons').find('button:eq(1)').attr('title', value);
+                    this.options.downButtonTitle = value || $.ui.numeric.globalization.defaultDownTooltip;
+                    if (this.options.buttons)
+                        $('#' + this._name + '_buttons').find('button:eq(1)').attr('title', this.options.downButtonTitle);
                     break;
 
                 default:
-                    $.Widget.prototype._setOption.apply(t, key, value);
+                    $.Widget.prototype._setOption.call(this, key, value);
                     break;
             }
-            return t;
+            return this;
         },
 
         _checkFormat: function()
         {
-            var o = this.options;
-            if (typeof o.format === 'string')
-                o.format = { format: o.format, decimalChar: '.', thousandsChar: ',' };
-            else
-                o.format = $.extend({ format: '0', decimalChar: '.', thousandsChar: ',' }, o.format);
+            this.options.format = $.extend({}, Number.globalization.defaultFormat, typeof this.options.format === 'string' ? { format: this.options.format} : this.options.format);
         },
 
         _getInputValue: function(val, parse)
@@ -324,30 +309,28 @@
         {
             // Set a flag to keep the "onchange" event from calling this method causing an infinate loop.
             this._adjustmentFlag = true;
-            this.widget().attr('value', this._format(val)).change();
+            this.element.attr('value', this._format(val)).change();
             this._adjustmentFlag = false;
         },
 
         _setValue: function(val)
         {
-            var t = this;
             val = _numVal(val);
 
-            if (t.options.minValue !== false && val < t.options.minValue)
-                val = t.options.minValue;
+            if (this.options.minValue !== false && val < this.options.minValue)
+                val = this.options.minValue;
 
-            if (t.options.maxValue !== false && val > t.options.maxValue)
-                val = t.options.maxValue;
+            if (this.options.maxValue !== false && val > this.options.maxValue)
+                val = this.options.maxValue;
 
-            t._value = val;
-            if (!t.options.disabled)
-                t._setInputValue(val);
+            this._value = val;
+            if (!this.options.disabled)
+                this._setInputValue(val);
         },
 
         _format: function(val)
         {
-            var o = this.options;
-            return isNaN(val) || (o.emptyValue !== false && val === o.emptyValue) ? '' : $.formatNumber(val, o.format);
+            return isNaN(val) || (this.options.emptyValue !== false && val === this.options.emptyValue) ? '' : $.formatNumber(val, this.options.format);
         },
 
         _getIncrement: function(ctrl, shift)
@@ -363,12 +346,11 @@
 
         _adjustValue: function(amount, type)
         {
-            var t = this;
-            if (t.options.disabled)
+            if (this.options.disabled)
                 return;
 
-            t._setValue($.isFunction(t.options.calc) ? t.options.calc(t._value, type, amount < 0 ? 2 : 1) : t._value + amount);
-            t.select();
+            this._setValue($.isFunction(this.options.calc) ? this.options.calc(this._value, type, amount < 0 ? 2 : 1) : this._value + amount);
+            this.select();
         },
 
         _adjustValueRecursive: function(amount, type)
@@ -379,36 +361,43 @@
 
         _onKeyDown: function(event)
         {
-            var t = this, o = t.options;
-            if (o.disabled)
+            if (this.options.disabled)
                 return;
+
+            // Fix for issue #4: format characters were not allowed for non-standard format character values.
+            // toLowerCase is used to normalize characters in case the user has caps lock on.
+            // Note: The $.keyCodeToCharCode() method is written for use with the standard US 101 keyboard. It may need to be modified for other keyboard layouts.
+            var v_char = String.fromCharCode($.keyCodeToCharCode(event.which, event.shiftKey)).toLowerCase();
+            if (v_char === this.options.format.decimalChar.toLowerCase() || v_char == this.options.format.thousandsChar.toLowerCase())
+            {
+                this._keyDownFlag = true;
+                return;
+            }
 
             switch (event.which)
             {
-                // The following are non-control keys that we want to allow through to perform their default function with no other actions.
+                // The following are non-control keys that we want to allow through to perform their default function with no other actions.                               
                 case 109: // Negative Sign
-                case 110: // Decimal (number pad)
-                case 190: // Decimal (key pad)
-                    t._keyDownFlag = true;
+                    this._keyDownFlag = true;
                     return;
 
                 case 38: // Up Arrow
                 case 40: // Down Arrow
-                    if (o.keyboard)
+                    if (this.options.keyboard)
                     {
-                        var inc = t._getIncrement(event.ctrlKey, event.shiftKey);
-                        t._adjustValue(event.which == 40 ? -inc.value : inc.value, inc.type);
+                        var inc = this._getIncrement(event.ctrlKey, event.shiftKey);
+                        this._adjustValue(event.which == 40 ? -inc.value : inc.value, inc.type);
                     }
                     return;
 
                 case 33: // Page Up
-                    if (o.keyboard)
-                        t._adjustValue(o.largeIncrement, 3);
+                    if (this.options.keyboard)
+                        this._adjustValue(this.options.largeIncrement, 3);
                     return;
 
                 case 34: // Page Down
-                    if (o.keyboard)
-                        t._adjustValue(-o.largeIncrement, 3);
+                    if (this.options.keyboard)
+                        this._adjustValue(-this.options.largeIncrement, 3);
                     return;
 
                     // The following are keyboard shortcuts that we still want to allow.
@@ -437,11 +426,11 @@
         _onKeyUp: function()
         {
             // Make sure the value gets updated after every keypress if the current value of the input parses to a valid number.
-            var t = this, v = parseFloat(t._getInputValue(t.widget().attr('value'), false));
+            var v = parseFloat(this._getInputValue(this.element.attr('value'), false));
             if (!isNaN(v))
-                t._value = v;
+                this._value = v;
 
-            t._keyDownFlag = false;
+            this._keyDownFlag = false;
         },
 
         _onChange: function(event)
@@ -465,11 +454,17 @@
         select: function()
         {
             if (!this.options.disabled)
-                this.widget().select();
+                this.element.select();
 
             return this;
         }
     });
+
+    $.ui.numeric.globalization = {
+        defaultTooltip: 'Type a new value or use the buttons or keyboard arrow keys to change the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.',
+        defaultUpTooltip: 'Increment the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.',
+        defaultDownTooltip: 'Decrement the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.'
+    };
 
     $.ui = $.ui || {};
     $.ui.numeric._current = null;
@@ -478,6 +473,83 @@
         clearTimeout($.ui.numeric._current._timer);
         $.ui.numeric._current._adjustValue(amount, type);
         $.ui.numeric._current._timer = setTimeout('jQuery.ui.numeric._timerCallback(' + amount + ',' + type + ',false)', first ? 1000 : 50);
+    }
+
+    var KEY_CODE_MAP_SHIFT = {
+        48: 41, // )
+        49: 33, // !
+        50: 64, // @
+        51: 35, // #
+        52: 36, // $
+        53: 37, // %
+        54: 94, // ^
+        55: 38, // &
+        56: 42, // *
+        57: 40, // (
+
+        59: 58,   // : for geko and opera
+        61: 43,   // + for geko and opera
+        186: 58,  // : for webkit and IE
+        187: 43,  // + for webkit and IE
+        188: 60,  // <
+        109: 95,  // _ for geko
+        189: 95,  // _ for webkit and IE
+        190: 62,  // >
+        191: 63,  // ?
+        192: 126, // ~
+        219: 123, // {
+        220: 124, // |
+        221: 125, // }
+        222: 34   // "
+    };
+
+    var KEY_CODE_MAP_NORMAL = {
+        59: 59, // ; for geko and opera
+        61: 61, // = for geko and opera
+
+        96: 48,  // numpad 0
+        97: 49,  // numpad 1
+        98: 50,  // numpad 2
+        99: 51,  // numpad 3
+        100: 52, // numpad 4
+        101: 53, // numpad 5
+        102: 54, // numpad 6
+        103: 55, // numpad 7
+        104: 56, // numpad 8
+        105: 57, // numpad 9
+
+        106: 42, // numpad *
+        107: 43, // numpad +
+        109: 45, // numpad -
+        110: 46, // numpad .
+        111: 47, // numpad /
+
+        186: 59, // ; for webkit and IE
+        187: 61, // = for webkit and IE
+        188: 44, // ,
+        109: 45, // - for geko
+        189: 45, // - for webkit and IE
+        190: 46, // .
+        191: 47, // /
+        192: 96, // `
+        219: 91, // [
+        220: 92, // \
+        221: 93, // ]
+        222: 39  // '
+    };
+
+    $.keyCodeToCharCode = function(keyCode, shift)
+    {
+        if (keyCode >= 48 && keyCode <= 57 && !shift) // 0-9
+            return keyCode;
+
+        if (keyCode >= 65 && keyCode <= 90) // A-Z and a-z
+            return shift ? keyCode : keyCode + 32;
+
+        if (keyCode === 9 || keyCode === 32) // tab, space
+            return keyCode;
+
+        return shift ? KEY_CODE_MAP_SHIFT[keyCode] : KEY_CODE_MAP_NORMAL[keyCode];
     }
 
     function isControlKey(keyCode)
@@ -547,22 +619,13 @@
     */
     $.formatNumber = function(num, options)
     {
-        num = _numVal(num);
-
-        if (typeof options === 'string')
-            options = { format: options };
-
-        options = $.extend({ format: null, decimalChar: '.', thousandsChar: ',' }, options);
-
-        // No need to continue if no format string is specified.
-        if (typeof options.format !== 'string' || options.format.length <= 0)
-            return num.toString();
+        options = $.extend({}, Number.globalization.defaultFormat, typeof options === 'string' ? { format: options} : options);
 
         // Default to '.' as the decimal character.
-        options.decimalChar = typeof options.decimalChar !== 'string' || options.decimalChar.length <= 0 ? '.' : options.decimalChar;
+        options.decimalChar = typeof options.decimalChar !== 'string' || options.decimalChar.length <= 0 ? Number.globalization.defaultFormat.decimalChar : options.decimalChar;
 
         // Default to ',' as the thousands separator.
-        options.thousandsChar = typeof options.thousandsChar !== 'string' ? ',' : options.thousandsChar;
+        options.thousandsChar = typeof options.thousandsChar !== 'string' ? Number.globalization.defaultFormat.thousandsChar : options.thousandsChar;
 
         if (options.decimalChar.length > 1)
             throw 'NumberFormatException: Can not have multiple characters as the decimal character.';
@@ -570,29 +633,52 @@
         if (options.thousandsChar.length > 1)
             throw 'NumberFormatException: Can not have multiple characters as the thousands separator.';
 
-        var v_dec_index = options.format.indexOf(options.decimalChar);
-        if (v_dec_index >= 0 && options.format.indexOf(options.decimalChar, v_dec_index + 1) >= 0)
+        // If the value passed in is not a number object, it needs to be parsed to a number object.
+        if (typeof num !== 'number')
+        {
+            // If the value passed in is a string, then remove any thousands characters and normalize the decimal to a decimal point.
+            if (typeof num === 'string')
+            {
+                num = num.replace(new RegExp(regExEscape(options.thousandsChar), 'g'), '');
+
+                if (options.decimalChar !== '.')
+                    num = num.replace(new RegExp(regExEscape(options.decimalChar), 'g'), '.');
+            }
+
+            num = Number(num);
+
+            if (isNaN(num))
+                num = 0;
+        }
+
+        // No need to continue if no format string is specified.
+        if (typeof options.format !== 'string' || options.format.length <= 0)
+            return options.decimalChar === '.' ? num.toString() : num.toString().replace(/\./g, options.decimalChar);
+
+        var v_dec_index = options.format.indexOf('.');
+        if (v_dec_index >= 0 && options.format.indexOf('.', v_dec_index + 1) >= 0)
             throw 'NumberFormatException: Format string has multiple decimal characters.';
 
         // Convert the current numeric value to a string, removing the negative sign if the number is negative.
         var v_num_as_string = num.toString().replace(/-/g, ''),
 
-        // Strip out all of the characters that are not formatting characters. Regonized formatting characters are: '0', '#', and the decimal character.
-        v_clean_format = options.format.replace(new RegExp('[^0#' + regExEscape(options.decimalChar) + ']', 'g'), ''),
+        // Strip out all of the characters that are not formatting characters. Regonized formatting characters are: '0', '#', and '.'.
+        v_clean_format = options.format.replace(new RegExp('[^0#\.]', 'g'), ''),
 
         // Split the numerical value into it's int and decimal parts.
-        v_num_parts = v_num_as_string.indexOf(options.decimalChar) < 0 ? [v_num_as_string, ''] : v_num_as_string.split(options.decimalChar),
+        v_num_parts = v_num_as_string.indexOf('.') < 0 ? [v_num_as_string, ''] : v_num_as_string.split('.'),
 
         // Split the format string into it's respective integer and decimal parts.
-        v_format_parts = v_dec_index < 0 ? [v_clean_format, ''] : v_clean_format.split(options.decimalChar);
+        v_format_parts = v_dec_index < 0 ? [v_clean_format, ''] : v_clean_format.split('.');
 
         // If the int part is zero, then we may not need to have any int part depending on the format string.
         if (parseInt(num) === 0)
-            v_num_parts[0] = v_format_parts[0].indexOf('0') >= 0 ? '0' : '';
+            v_num_parts[0] = v_format_parts[0].indexOf('0') >= 0 ? Number.globalization.padChar : '';
 
         // Otherwise no processing is needed, we already have our int part.
 
-        if (options.format.indexOf(options.thousandsChar) >= 0 && v_num_parts[0].length > 3)
+        var i;
+        if (options.format.indexOf(',') >= 0 && v_num_parts[0].length > 3)
         {
             // If we need to include the thousands separator, then we can break the int part into chunks of three characters each (the first chunk does not need
             // to be 3 characters), then join them together separated by the thousands separator.
@@ -601,7 +687,7 @@
             m = Math.floor(j / 3),
             n = v_num_parts[0].length % 3 || 3; // If n is zero, an infinite loop will occur, so we have to make sure it is not zero.
 
-            for (var i = 0; i < j; i += n)
+            for (i = 0; i < j; i += n)
             {
                 if (i != 0)
                     n = 3;
@@ -622,7 +708,7 @@
                 var v_format_array = v_format_parts[1].split(''), v_dec_part_array = v_num_parts[1].split('');
 
                 // Compile the final formatted decimal part. If there are any # symbols left, we can simply remove them.
-                for (var i = 0; i < v_dec_part_array.length; i++)
+                for (i = 0; i < v_dec_part_array.length; i++)
                 {
                     if (i >= v_format_array.length)
                         break;
@@ -641,7 +727,7 @@
                 v_num_parts[1] = '';
                 while (v_format_parts[1].charAt(v_index) === '0')
                 {
-                    v_num_parts[1] += '0';
+                    v_num_parts[1] += Number.globalization.padChar;
                     v_index++;
                 }
             }
@@ -657,7 +743,7 @@
             v_retval = '-' + v_retval;
 
         // Replace the number portion of the format string with the compiled result
-        return options.format.replace(new RegExp('[0|#|' + regExEscape(options.thousandsChar) + '|' + regExEscape(options.decimalChar) + ']+'), v_retval);
+        return options.format.replace(new RegExp('[0|#|,|\.]+'), v_retval);
     }
 
     // Rounds the decimal part of the number to the specified number of decimals.
@@ -679,7 +765,7 @@
         if (v_s_len < numberOfDigits)
         {
             for (var i = v_s_len; i < numberOfDigits; i++)
-                v_string = '0' + v_string;
+                v_string = Number.globalization.padChar + v_string;
         }
         return v_string;
     }
@@ -694,7 +780,7 @@
         if (v_s_len < numberOfDigits)
         {
             for (var i = v_s_len; i < numberOfDigits; i++)
-                v_string = v_string + '0';
+                v_string = v_string + Number.globalization.padChar;
         }
         return v_string;
     }
@@ -708,10 +794,10 @@
         var v_parts = String(this.valueOf()).split('.');
 
         if (v_parts.length <= 0)
-            return numberOfDecimals > 0 ? '0.' + replicate('0', numberOfDecimals) : '0';
+            return numberOfDecimals > 0 ? Number.globalization.padChar + '.' + replicate(Number.globalization.padChar, numberOfDecimals) : Number.globalization.padChar;
 
         if (v_parts.length == 1)
-            return v_parts[0] + (numberOfDecimals > 0 ? '.' + replicate('0', numberOfDecimals) : '');
+            return v_parts[0] + (numberOfDecimals > 0 ? '.' + replicate(Number.globalization.padChar, numberOfDecimals) : '');
 
         return v_parts[0] + (numberOfDecimals > 0 ? '.' + parseInt(v_parts[1]).padRight(numberOfDecimals) : '');
     }
@@ -723,15 +809,15 @@
             return (this % 100).getOrdinal();
 
         if (this >= 11 && this <= 19)
-            return 'th';
+            return Number.globalization.ordinals.th;
 
         switch (this % 10)
         {
-            case 1: return 'st';
-            case 2: return 'nd';
-            case 3: return 'rd';
+            case 1: return Number.globalization.ordinals.st;
+            case 2: return Number.globalization.ordinals.nd;
+            case 3: return Number.globalization.ordinals.rd;
         }
-        return 'th';
+        return Number.globalization.ordinals.th;
     }
 
     // See formatNumber above for details.
@@ -753,7 +839,7 @@
     */
     Number.prototype.formatCurrency = function(options)
     {
-        options = $.extend({ symbol: '$', noParens: false, format: '#,##0.00', decimalChar: '.', thousandsChar: ',' }, options);
+        options = $.extend({}, Number.globalization.defaultCurrencyFormat, options);
 
         var v_retval = Math.abs(this).format(options);
 
@@ -764,5 +850,12 @@
 
         return v_retval;
     }
+
+    Number.globalization = {
+        defaultFormat: { format: null, decimalChar: '.', thousandsChar: ',' },
+        defaultCurrencyFormat: { symbol: '$', noParens: false, format: '#,##0.00', decimalChar: '.', thousandsChar: ',' },
+        padChar: '0',
+        ordinals: { th: 'th', st: 'st', nd: 'nd', rd: 'rd' }
+    };
 
 })(jQuery);

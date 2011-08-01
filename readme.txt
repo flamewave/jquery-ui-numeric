@@ -1,5 +1,5 @@
 /*
-* jQuery UI Numeric Up/Down v1.3
+* jQuery UI Numeric Up/Down v1.4
 *
 * Copyright 2011, Tony Kramer
 * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -44,10 +44,10 @@ keyboard: true
 showCurrency: false
     A value indicating if the currency symbol should be displayed to the left of the input.
 
-currencySymbol: '$'
+currencySymbol: null
     The currency symbol to use.
 
-title: 'Type a new value or use the buttons or keyboard arrow keys to change the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.'
+title: null
     The tool tip text of the input.
 
 buttons: true
@@ -56,18 +56,18 @@ buttons: true
 upButtonIcon: 'ui-icon-triangle-1-n'
     Icon of the up button.
 
-upButtonTitle: 'Increment the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.'
+upButtonTitle: null
     Tooltip text of the up button.
 
 downButtonIcon: 'ui-icon-triangle-1-s'
     Icon of the down button.
 
-downButtonTitle: 'Decrement the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.'
+downButtonTitle: null
     Tooltip text of the down button.
 
 emptyValue: 0
-    If the value equals the value specified by this option, then the input is made "empty" so that no value is visible. To
-    disable this functionality, set this option to false.
+    If the value equals the value specified by this option, then the input is made "empty" so that no value is visible.
+    To disable this functionality, set this option to false.
 
 minValue: false
     The minimum value allowed. To disable, set this option to false.
@@ -92,8 +92,8 @@ calc: null
         where type is a number: 1 = normal increment, 2 = small increment, and 3 = large increment.
         where direction is a number: 1 = up, 2 = down.
         returns the new value of the input.
-    For example, to have the widget multiply it's value by 2 on a small increment, mulitply by 4 on a normal increment, and
-    mulitply by 8 on a large increment, you would do something like this:
+    For example, to have the widget multiply it's value by 2 on a small increment, mulitply by 4 on a normal increment,
+    and mulitply by 8 on a large increment, you would do something like this:
         $('#inputid').numeric({
             emptyValue: false,
             minValue: 0,
@@ -107,13 +107,14 @@ calc: null
             }
         });
 
-format: { format: '0', decimalChar: '.', thousandsChar: ',' }
-    The format information to use to format the number in the input. The "format" property is the format string to use (see
-    below for details). The "decimalChar" property is the decimal character to use if the format string specifies to include
-    decimal places. The "thousandsChar" is the thousands separator character to use, if the format string specifies to use a
-    thousands separator.
+format: null
+    The format information to use to format the number in the input. The "format" property is the format string to use
+    (see below for details). The "decimalChar" property is the decimal character to use if the format string specifies
+    to include decimal places. The "thousandsChar" is the thousands separator character to use, if the format string
+    specifies to use a thousands separator.
     
-    If the value of this setting is a string, then it is the same as { format: "value", decimalChar: '.', thousandsChar: ',' },
+    If the value of this setting is a string, then it is the same as:
+        { format: "value", decimalChar: '.', thousandsChar: ',' }
     where "value" is the value of the string.
 
     See the $.formatNumber() documentation below for more details.
@@ -150,19 +151,68 @@ numeric('value', [newValue])
 numeric('select')
     Selects the input value.
 
+-------------
+Globalization
+-------------
+There are two globalization objects defined that can be used to set default globalization options so that they do not
+need to be specified for every call of the utility methods or instance of the numeric widget. They are as follows:
+
+Number.globalization
+    Allows globalization options to be set globally for number formatting. It's properties (and default values) are
+    as follows:
+
+    defaultFormat: { format: null, decimalChar: '.', thousandsChar: ',' }
+        Defines the default number format object to use. See $.formatNumber() below for details.
+        Passing null to $.formatNumber() or setting the "format" option of the numeric widget will use this value.
+
+    defaultCurrencyFormat: { symbol: '$', noParens: false, format: '#,##0.00', decimalChar: '.', thousandsChar: ',' }
+        Defines the default currency format object to use. See Number.formatCurrency() below for details.
+        Passing null to Number.formatCurrency() will use this value. If the "currencySymbol" option of the numeric
+        widget is null, then the "symbol" property of this value will be used.
+
+    padChar: '0'
+        Defines the character to use for padding numbers to be a specified number of significant digits.
+
+    ordinals: { th: 'th', st: 'st', nd: 'nd', rd: 'rd' }
+        Defines the ordinal strings to use for number ordinals returned by the Number.getOrdinal() method.
+
+$.ui.numeric.globalization
+    Allows globalization options to be set globally for the numeric widget. It's properties (and default values) are
+    as follows:
+
+    defaultTooltip: 'Type a new value or use the buttons or keyboard arrow keys to change the value. Hold Ctrl or Shift
+        for a smaller or larger increment, respectively.'
+        Defines the default tooltip text to use for the numeric widget HTML inputs. Setting the "title" option of the
+        numeric widget to null will use this value.
+
+    defaultUpTooltip: 'Increment the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.'
+        Defines the default tooltip text for the up button of the numeric widget. Setting the "upButtonTitle" option
+        of the numeric widget to null will use this value.
+
+    defaultDownTooltip: 'Decrement the value. Hold Ctrl or Shift for a smaller or larger increment, respectively.'
+        Defines the default tooltip text for the down button of the numeric widget. Setting the "downButtonTitle"
+        option of the numeric widget to null will use this value.
+
 ---------------
 Utility Methods
 ---------------
+$.keyCodeToCharCode(keyCode, shift)
+    Converts the specified key code to it's corresponding ASCII character code. The "shift" parameter is a boolean
+    value indicating if the shift key is pressed.
+
 $.formatNumber(number, options)
     Formats a number according to a specified format string.
 
     Available options:
-    - format        : The format string to format the number with. The number will be rounded to the number of digits specified.
+    - format        : The format string to format the number with. The number will be rounded to the number of digits
+                      specified. If this value is null, then the number will be formatted with all of it's digits and
+                      decimals, with no thousands separator, and the decimal charater provided in the "decimalChar"
+                      property.
                       0 = A significant digit (always included).
                       # = Digit will be used if applicable.
                       . = Characters to the right of this will be interpreted as decimal places.
-                      , = Must occur to the left of the decimal (if there is one). If included, indicates the thousands separator
-                          will be included every 3 digits on the left of the decimal.
+                      , = Must occur to the left of the decimal (if there is one). If included, indicates the thousands
+                          separator will be included every 3 digits on the left of the decimal.
     - decimalChar   : The decimal character to use when formatting the number. Defaults to '.'.
     - thousandsChar : The thousands separator character to use when formatting the number. Defaults to ','.
 
