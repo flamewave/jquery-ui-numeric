@@ -37,3 +37,7 @@ Version 1.4 - July 28, 2011
  - Added: $.keyCodeToCharCode() method that is used as part of the fix for issue #4.
  - Added: $.ui.numeric.globalization and Number.globalization objects that can be used to globally set globalization
    information.
+
+Version 1.4.1 - September 1, 2011
+ - Bug fix: When initilizing the widget on a disabled input, a javascript error would occur because the call to the
+   _setOption() method was being referenced in an incorrect manner.

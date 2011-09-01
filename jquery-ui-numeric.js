@@ -1,5 +1,5 @@
 /*!
-* jQuery UI Numeric Up/Down v1.4
+* jQuery UI Numeric Up/Down v1.4.1
 *
 * Copyright 2011, Tony Kramer
 * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -26,7 +26,7 @@
     // .ui-numeric-disabled {}
 
     $.widget('ui.numeric', {
-        version: '1.4',
+        version: '1.4.1',
         options: {
             disabled: false,
             keyboard: true,
@@ -92,7 +92,7 @@
             });
 
             if (this.options.disabled || this.element.attr('disabled'))
-                this.options._setOption('disabled', true);
+                this._setOption('disabled', true);
 
             // Prevent memory leaks.
             $(window).bind('unload', function() { self.destroy(); });
