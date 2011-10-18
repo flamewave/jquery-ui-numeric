@@ -6,6 +6,7 @@
 * https://github.com/flamewave/jquery-ui-numeric/raw/master/GPL-LICENSE.txt
 * https://github.com/flamewave/jquery-ui-numeric/raw/master/MIT-LICENSE.txt
 *
+* For documentation and for the latest version, see:
 * https://github.com/flamewave/jquery-ui-numeric
 */
 
