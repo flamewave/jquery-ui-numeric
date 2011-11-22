@@ -1,5 +1,5 @@
 /*!
-* jQuery UI Numeric Up/Down v1.4.1
+* jQuery UI Numeric Up/Down v1.4.2
 *
 * Copyright 2011, Tony Kramer
 * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -26,7 +26,7 @@
     // .ui-numeric-disabled {}
 
     $.widget('ui.numeric', {
-        version: '1.4.1',
+        version: '1.4.2',
         options: {
             disabled: false,
             keyboard: true,
@@ -704,6 +704,10 @@
         {
             if (v_num_parts[1].length > 0)
             {
+                // If there are more decimal digits then what we are displaying, then we need to make sure the decimal part gets rounded.
+                if (v_num_parts[1].length > v_format_parts[1].length)
+                    v_num_parts[1] = Number('0.' + v_num_parts[1]).roundRight(v_format_parts[1].length).toString().split('.')[1];
+
                 // Get character arrays of the decimal format string and decimal part of the numerical value.
                 var v_format_array = v_format_parts[1].split(''), v_dec_part_array = v_num_parts[1].split('');
 

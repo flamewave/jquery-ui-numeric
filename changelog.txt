@@ -41,3 +41,6 @@ Version 1.4 - July 28, 2011
 Version 1.4.1 - September 1, 2011
  - Bug fix: When initilizing the widget on a disabled input, a javascript error would occur because the call to the
    _setOption() method was being referenced in an incorrect manner.
+
+Version 1.4.2 - November 22, 2011
+ - Bug fix: Issue #7 - In $.formatNumber(), decimals were not being rounded up, they were simply being truncated.
