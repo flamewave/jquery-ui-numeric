@@ -1,3 +1,8 @@
+***
+This project has been deprecated and is no longer maintained.
+Instead use the jqAmp-ui-spinner widget (https://github.com/flamewave/jqamp-ui-spinner)
+***
+
 /*
 * jQuery UI Numeric Up/Down v1.4.2
 *

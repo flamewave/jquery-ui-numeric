@@ -29,7 +29,7 @@ Version 1.3 - April 29, 2011
  - Bug fix: Issue #3 - Change event firing when initializing - credit to glittle for the fix.
 
 Version 1.4 - July 28, 2011
- - Bug fix: Issue #4 - When using a decimal or thousands character other than the default (. and , respectivly), the
+ - Bug fix: Issue #4 - When using a decimal or thousands character other than the default (. and , respectively), the
    widget would not let you enter them nor would it format the number correctly.
  - Bug fix: In $.formatNumber(), when using a decimal or thousands character other than the default, it was unable to
    properly format the number.
@@ -39,8 +39,11 @@ Version 1.4 - July 28, 2011
    information.
 
 Version 1.4.1 - September 1, 2011
- - Bug fix: When initilizing the widget on a disabled input, a javascript error would occur because the call to the
+ - Bug fix: When initializing the widget on a disabled input, a javascript error would occur because the call to the
    _setOption() method was being referenced in an incorrect manner.
 
 Version 1.4.2 - November 22, 2011
  - Bug fix: Issue #7 - In $.formatNumber(), decimals were not being rounded up, they were simply being truncated.
+
+May 10, 2012 - End of project
+ - Project deprecated in favor of the jqAmp-ui-spinner widget (https://github.com/flamewave/jqamp-ui-spinner)

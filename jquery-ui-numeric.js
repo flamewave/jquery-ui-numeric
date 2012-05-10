@@ -165,7 +165,7 @@
                 // TODO: Fix if there are more than one numeric instances on the page, then if a button on one instance is clicked, then a button on
                 // another instance is clicked, both buttons are shown to have focus.
 
-                // Fixes an issue where if the other button is clicked, then both buttons are shown to have focus.
+                /* Fixes an issue where if the other button is clicked, then both buttons are shown to have focus. */
                 (neg ? btnUp : btnDown).blur();
                 var inc = self._getIncrement(event.ctrlKey, event.shiftKey);
                 self._adjustValueRecursive(neg ? -inc.value : inc.value, inc.type);
@@ -376,7 +376,7 @@
 
             switch (event.which)
             {
-                // The following are non-control keys that we want to allow through to perform their default function with no other actions.                               
+                // The following are non-control keys that we want to allow through to perform their default function with no other actions.                                
                 case 109: // Negative Sign
                     this._keyDownFlag = true;
                     return;
