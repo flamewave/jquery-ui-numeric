@@ -705,8 +705,19 @@
             if (v_num_parts[1].length > 0)
             {
                 // If there are more decimal digits then what we are displaying, then we need to make sure the decimal part gets rounded.
-                if (v_num_parts[1].length > v_format_parts[1].length)
-                    v_num_parts[1] = Number('0.' + v_num_parts[1]).roundRight(v_format_parts[1].length).toString().split('.')[1];
+                if (v_num_parts[1].length > v_format_parts[1].length){
+                    //leaf modified
+                    var v_num_parts_value_leaf = Number('0.' + v_num_parts[1]).roundRight(v_format_parts[1].length);
+                    if(v_num_parts_value_leaf == 0){//resolve decimal part equal zero
+                        v_num_parts[1] = Number(0).padRight(v_format_parts[1].length);
+                    }
+                    else if(v_num_parts_value_leaf >= 1){//resolve decimal part greater than 1
+                        v_num_parts[1] = Number(0).padRight(v_format_parts[1].length);
+                        v_num_parts[0] = parseInt(v_num_parts[0], 10) + parseInt(v_num_parts_value_leaf, 10);
+                    }else{//default
+                        v_num_parts[1] = Number('0.' + v_num_parts[1]).roundRight(v_format_parts[1].length).toString().split('.')[1];
+                    }
+                }
 
                 // Get character arrays of the decimal format string and decimal part of the numerical value.
                 var v_format_array = v_format_parts[1].split(''), v_dec_part_array = v_num_parts[1].split('');
